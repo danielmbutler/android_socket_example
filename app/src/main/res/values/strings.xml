@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">socketExample</string>
+    <string name="connect">Connect</string>
+    <string name="waiting">waiting....</string>
+    <string name="disconnect">disconnect</string>
+    <string name="enter_your_name">Enter Your Name</string>
+    <string name="enter_chat_room">Enter chat room</string>
+    <string name="message">Message...</string>
+    <string name="send">Send</string>
+    <string name="hello_this_is_a_sample_message">Hello this is a sample message</string>
+    <string name="name">Name</string>
+    <string name="hello_this_is_a_sample_text">Hello this is a sample text</string>
 </resources>
