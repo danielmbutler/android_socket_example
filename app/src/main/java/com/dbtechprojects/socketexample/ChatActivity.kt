@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Base64
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,14 +27,14 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     private lateinit var name: String
     private lateinit var webSocket: WebSocket
     private lateinit var chatMessageAdapter: ChatMessageAdapter
-    private var SERVER_PATH = ""
+    private var SERVER_PATH = "ws://192.168.1.134:3000"
     private var _binding: ActivityChatBinding? = null
     private val binding: ActivityChatBinding get() = _binding!!
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityChatBinding.inflate(layoutInflater)
-        setContentView(R.layout.activity_chat)
+        setContentView(binding.root)
 
         name = intent.getStringExtra("name").toString()
         initiateSockConnection()
@@ -61,8 +62,8 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     }
 
     private fun pickImage() {
-
-        val getContent = registerForActivityResult(ActivityResultContracts.GetContent()){
+        Log.d("CHAT", "picking image")
+        registerForActivityResult(ActivityResultContracts.GetContent()){
             val inputStream = contentResolver.openInputStream(it)
             val image = BitmapFactory.decodeStream(inputStream)
             image?.let { imageToSend ->
@@ -83,6 +84,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             webSocket.send(jsonObject.toString())
             jsonObject.put("isSent", true)
             chatMessageAdapter.addItem(jsonObject)
+            binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
         }catch (e: JSONException){
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
@@ -97,6 +99,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             jsonObject.put("isSent", true)
             resetMessageEditText()
             chatMessageAdapter.addItem(jsonObject)
+            binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
         } catch (e : JSONException){
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
 
@@ -121,6 +124,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
                     val jsonObject = JSONObject(text)
                    jsonObject.put("isSent", false)
                    chatMessageAdapter.addItem(jsonObject)
+                   binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
                }catch (e : JSONException){
                    e.printStackTrace()
                }
@@ -142,6 +146,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     }
 
     override fun afterTextChanged(s: Editable?) {
+        Log.d("textListener", s.toString())
         //remove all whitespace
         val string = s.toString().trim()
         if (string.isEmpty()) {

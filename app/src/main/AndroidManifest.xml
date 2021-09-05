@@ -14,6 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SocketExample"
         android:usesCleartextTraffic="true">
+        <activity android:name=".ChatActivity"/>
         <activity
             android:name=".MainActivity"
             android:exported="true">
