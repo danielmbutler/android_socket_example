@@ -1,6 +1,5 @@
 package com.dbtechprojects.socketexample
 
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
@@ -12,6 +11,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.dbtechprojects.socketexample.databinding.ActivityChatBinding
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +25,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
 
     private lateinit var name: String
     private lateinit var webSocket: WebSocket
+    private lateinit var chatMessageAdapter: ChatMessageAdapter
     private var SERVER_PATH = ""
     private var _binding: ActivityChatBinding? = null
     private val binding: ActivityChatBinding get() = _binding!!
@@ -52,6 +53,11 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
         binding.pickImageButton.setOnClickListener {
             pickImage()
         }
+        chatMessageAdapter = ChatMessageAdapter(layoutInflater, mutableListOf())
+        binding.chatRecyclerview.apply {
+            this.adapter = chatMessageAdapter
+            this.layoutManager = LinearLayoutManager(this@ChatActivity)
+        }
     }
 
     private fun pickImage() {
@@ -76,6 +82,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             jsonObject.put("image", imageAsString)
             webSocket.send(jsonObject.toString())
             jsonObject.put("isSent", true)
+            chatMessageAdapter.addItem(jsonObject)
         }catch (e: JSONException){
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
@@ -89,6 +96,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             webSocket.send(jsonObject.toString())
             jsonObject.put("isSent", true)
             resetMessageEditText()
+            chatMessageAdapter.addItem(jsonObject)
         } catch (e : JSONException){
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
 
@@ -112,6 +120,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
                try {
                     val jsonObject = JSONObject(text)
                    jsonObject.put("isSent", false)
+                   chatMessageAdapter.addItem(jsonObject)
                }catch (e : JSONException){
                    e.printStackTrace()
                }

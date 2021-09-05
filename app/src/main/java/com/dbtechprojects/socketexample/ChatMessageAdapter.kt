@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView
 import org.json.JSONObject
 import org.json.JSONException
 
-import androidx.annotation.NonNull
 import android.graphics.BitmapFactory
 
 import android.graphics.Bitmap
