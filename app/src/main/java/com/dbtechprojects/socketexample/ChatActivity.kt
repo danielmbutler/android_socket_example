@@ -1,5 +1,6 @@
 package com.dbtechprojects.socketexample
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.appcompat.app.AppCompatActivity
@@ -30,6 +31,13 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     private var SERVER_PATH = "ws://192.168.1.134:3000"
     private var _binding: ActivityChatBinding? = null
     private val binding: ActivityChatBinding get() = _binding!!
+    val imagePickerActivity = registerForActivityResult(ActivityResultContracts.GetContent()) {
+        val inputStream = contentResolver.openInputStream(it)
+        val image = BitmapFactory.decodeStream(inputStream)
+        image?.let { imageToSend ->
+            sendImage(imageToSend)
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,12 +49,12 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     }
 
     private fun initiateSockConnection() {
-        val client  = OkHttpClient()
+        val client = OkHttpClient()
         val request = Request.Builder().url(SERVER_PATH).build()
         webSocket = client.newWebSocket(request, SocketListener(this))
     }
 
-    private fun initializeView(){
+    private fun initializeView() {
         binding.messageText.addTextChangedListener(this)
         binding.sendButton.setOnClickListener {
             sendMessage()
@@ -63,19 +71,15 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
 
     private fun pickImage() {
         Log.d("CHAT", "picking image")
-        registerForActivityResult(ActivityResultContracts.GetContent()){
-            val inputStream = contentResolver.openInputStream(it)
-            val image = BitmapFactory.decodeStream(inputStream)
-            image?.let { imageToSend ->
-                sendImage(imageToSend)
-            }
-        }
+
+        imagePickerActivity.launch("image/*")
     }
 
     private fun sendImage(image: Bitmap) {
         val byteArrayOutputStream = ByteArrayOutputStream()
         image.compress(Bitmap.CompressFormat.JPEG, 50, byteArrayOutputStream)
-        val imageAsString = Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
+        val imageAsString =
+            Base64.encodeToString(byteArrayOutputStream.toByteArray(), Base64.DEFAULT)
         val jsonObject = JSONObject()
 
         try {
@@ -85,7 +89,7 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             jsonObject.put("isSent", true)
             chatMessageAdapter.addItem(jsonObject)
             binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
-        }catch (e: JSONException){
+        } catch (e: JSONException) {
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
         }
     }
@@ -100,34 +104,36 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
             resetMessageEditText()
             chatMessageAdapter.addItem(jsonObject)
             binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
-        } catch (e : JSONException){
+        } catch (e: JSONException) {
             Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
 
         }
     }
 
     override fun onOpen(webSocket: WebSocket, response: Response) {
-            lifecycleScope.launch {
-                withContext(Dispatchers.Main){
-                    Toast.makeText(this@ChatActivity, "Connection Successful",
-                    Toast.LENGTH_SHORT).show()
+        lifecycleScope.launch {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ChatActivity, "Connection Successful",
+                    Toast.LENGTH_SHORT
+                ).show()
 
-                    initializeView()
-                }
+                initializeView()
             }
+        }
     }
 
     override fun onMessage(webSocket: WebSocket, text: String) {
         lifecycleScope.launch {
-            withContext(Dispatchers.Main){
-               try {
+            withContext(Dispatchers.Main) {
+                try {
                     val jsonObject = JSONObject(text)
-                   jsonObject.put("isSent", false)
-                   chatMessageAdapter.addItem(jsonObject)
-                   binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
-               }catch (e : JSONException){
-                   e.printStackTrace()
-               }
+                    jsonObject.put("isSent", false)
+                    chatMessageAdapter.addItem(jsonObject)
+                    binding.chatRecyclerview.smoothScrollToPosition(chatMessageAdapter.itemCount - 1)
+                } catch (e: JSONException) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -160,8 +166,9 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
     private fun resetMessageEditText() {
         binding.messageText.removeTextChangedListener(this)
         binding.messageText.setText("")
-        binding.sendButton.visibility = View.GONE
+        binding.sendButton.visibility = View.INVISIBLE
         binding.pickImageButton.visibility = View.VISIBLE
+        binding.messageText.addTextChangedListener(this)
     }
 
 }
