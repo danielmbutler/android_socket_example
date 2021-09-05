@@ -110,7 +110,8 @@ class ChatActivity : AppCompatActivity(), ChatSocketListener, TextWatcher {
         lifecycleScope.launch {
             withContext(Dispatchers.Main){
                try {
-
+                    val jsonObject = JSONObject(text)
+                   jsonObject.put("isSent", false)
                }catch (e : JSONException){
                    e.printStackTrace()
                }
